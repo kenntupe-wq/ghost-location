@@ -1,6 +1,6 @@
 {
   "status": "approved",
-  "appName": "Ghost",
+  "appName": "Alder Phantom",
   "appSlug": "ghost",
   "version": 3,
   "branches": [
@@ -20,23 +20,23 @@
           "body": "Choose Ghost-0.1.7-mac-arm64.dmg or Ghost-0.1.7-mac-x64.dmg for your chip.",
           "href": "https://github.com/Blueturboguy07/ghost-location/releases/tag/v0.1.7",
           "kind": "open",
-          "title": "Download Ghost 0.1.7",
-          "actionLabel": "Open Ghost downloads",
+          "title": "Download Alder Phantom 0.1.7",
+          "actionLabel": "Open Alder Phantom downloads",
           "verifierLabel": "The matching installer finished downloading"
         },
         {
           "id": "locate-download",
-          "body": "Open your Downloads folder and find the Ghost installer.",
+          "body": "Open your Downloads folder and find the Alder Phantom installer.",
           "kind": "permission",
           "title": "Find the download",
           "verifierLabel": "You can see the downloaded file"
         },
         {
           "id": "install-app",
-          "body": "Open the DMG, then drag Ghost into Applications.",
+          "body": "Open the DMG, then drag Alder Phantom into Applications.",
           "kind": "permission",
-          "title": "Install Ghost",
-          "verifierLabel": "Ghost is installed"
+          "title": "Install Alder Phantom",
+          "verifierLabel": "Alder Phantom is installed"
         },
         {
           "id": "unsigned-launch",
@@ -49,9 +49,9 @@
         },
         {
           "id": "first-launch",
-          "body": "Open Ghost from Applications.",
+          "body": "Open Alder Phantom from Applications.",
           "kind": "verify",
-          "title": "Open Ghost",
+          "title": "Open Alder Phantom",
           "watch": {
             "expect": [
               {
@@ -60,11 +60,11 @@
               }
             ]
           },
-          "verifierLabel": "Ghost launches"
+          "verifierLabel": "Alder Phantom launches"
         },
         {
           "id": "choose-configuration",
-          "body": "Choose your Mac/Windows and iPhone/Android combination in Ghost’s first-run survey.",
+          "body": "Choose your Mac/Windows and iPhone/Android combination in Alder Phantom’s first-run survey.",
           "kind": "permission",
           "title": "Choose your computer and phone",
           "verifierLabel": "The checklist matches your computer and phone"
@@ -115,7 +115,7 @@
             ],
             "sensitive": true
           },
-          "verifierLabel": "The Ghost map and location controls are visible"
+          "verifierLabel": "The Alder Phantom map and location controls are visible"
         },
         {
           "id": "choose-connection",
@@ -133,7 +133,7 @@
             "expect": [],
             "sensitive": true
           },
-          "verifierLabel": "Ghost confirms Wi-Fi, or you chose to stay on USB"
+          "verifierLabel": "Alder Phantom confirms Wi-Fi, or you chose to stay on USB"
         },
         {
           "id": "android-wifi-pair",
@@ -168,14 +168,14 @@
         },
         {
           "id": "prepare-device",
-          "body": "Select the phone in Ghost. If Setup needed appears, click Prepare while online.",
+          "body": "Select the phone in Alder Phantom. If Setup needed appears, click Prepare while online.",
           "kind": "permission",
           "point": {
             "inApp": "org.ghostlocation.desktop",
             "descriptor": "Connected phone"
           },
           "title": "Prepare the connected phone",
-          "verifierLabel": "Ghost shows your selected phone as Ready"
+          "verifierLabel": "Alder Phantom shows your selected phone as Ready"
         },
         {
           "id": "android-mock-provider",
@@ -204,7 +204,7 @@
             "descriptor": "Set location"
           },
           "title": "Send the location to your phone",
-          "verifierLabel": "Ghost shows an active session"
+          "verifierLabel": "Alder Phantom shows an active session"
         },
         {
           "id": "verify-phone-location",
@@ -248,7 +248,7 @@
         },
         {
           "id": "start-route",
-          "body": "Click Start route · 45 mph. Ghost sends a new route point every second.",
+          "body": "Click Start route · 45 mph. Alder Phantom sends a new route point every second.",
           "kind": "permission",
           "point": {
             "inApp": "org.ghostlocation.desktop",
@@ -268,11 +268,11 @@
             ],
             "sensitive": true
           },
-          "verifierLabel": "Ghost shows Pause route and a moving blue dot"
+          "verifierLabel": "Alder Phantom shows Pause route and a moving blue dot"
         },
         {
           "id": "verify-route-on-phone",
-          "body": "Watch the phone’s map. Ghost’s dot shows sent points; it cannot verify what a phone app reads.",
+          "body": "Watch the phone’s map. Alder Phantom’s dot shows sent points; it cannot verify what a phone app reads.",
           "kind": "verify",
           "title": "Check movement on the phone",
           "verifierLabel": "You have checked movement in the phone’s map"
@@ -330,13 +330,13 @@
           "body": "Download Ghost-0.1.7-win-x64.exe. The installer includes the phone tools.",
           "href": "https://github.com/Blueturboguy07/ghost-location/releases/tag/v0.1.7",
           "kind": "open",
-          "title": "Download Ghost 0.1.7",
-          "actionLabel": "Open Ghost downloads",
+          "title": "Download Alder Phantom 0.1.7",
+          "actionLabel": "Open Alder Phantom downloads",
           "verifierLabel": "The matching installer finished downloading"
         },
         {
           "id": "locate-download",
-          "body": "Open your Downloads folder and find the Ghost installer.",
+          "body": "Open your Downloads folder and find the Alder Phantom installer.",
           "kind": "permission",
           "title": "Find the download",
           "verifierLabel": "You can see the downloaded file"
@@ -345,8 +345,8 @@
           "id": "install-app",
           "body": "Open the EXE and follow the installer.",
           "kind": "permission",
-          "title": "Install Ghost",
-          "verifierLabel": "Ghost is installed"
+          "title": "Install Alder Phantom",
+          "verifierLabel": "Alder Phantom is installed"
         },
         {
           "id": "unsigned-launch",
@@ -359,14 +359,14 @@
         },
         {
           "id": "first-launch",
-          "body": "Open Ghost from the Start menu.",
+          "body": "Open Alder Phantom from the Start menu.",
           "kind": "verify",
-          "title": "Open Ghost",
-          "verifierLabel": "Ghost launches"
+          "title": "Open Alder Phantom",
+          "verifierLabel": "Alder Phantom launches"
         },
         {
           "id": "choose-configuration",
-          "body": "Choose your Mac/Windows and iPhone/Android combination in Ghost’s first-run survey.",
+          "body": "Choose your Mac/Windows and iPhone/Android combination in Alder Phantom’s first-run survey.",
           "kind": "permission",
           "title": "Choose your computer and phone",
           "verifierLabel": "The checklist matches your computer and phone"
@@ -412,7 +412,7 @@
             "descriptor": "Continue to map"
           },
           "title": "Continue to the map",
-          "verifierLabel": "The Ghost map and location controls are visible"
+          "verifierLabel": "The Alder Phantom map and location controls are visible"
         },
         {
           "id": "choose-connection",
@@ -430,7 +430,7 @@
             "expect": [],
             "sensitive": true
           },
-          "verifierLabel": "Ghost confirms Wi-Fi, or you chose to stay on USB"
+          "verifierLabel": "Alder Phantom confirms Wi-Fi, or you chose to stay on USB"
         },
         {
           "id": "android-wifi-pair",
@@ -465,13 +465,13 @@
         },
         {
           "id": "prepare-device",
-          "body": "Select the phone in Ghost. If Setup needed appears, click Prepare while online.",
+          "body": "Select the phone in Alder Phantom. If Setup needed appears, click Prepare while online.",
           "kind": "permission",
           "point": {
             "descriptor": "Connected phone"
           },
           "title": "Prepare the connected phone",
-          "verifierLabel": "Ghost shows your selected phone as Ready"
+          "verifierLabel": "Alder Phantom shows your selected phone as Ready"
         },
         {
           "id": "android-mock-provider",
@@ -498,7 +498,7 @@
             "descriptor": "Set location"
           },
           "title": "Send the location to your phone",
-          "verifierLabel": "Ghost shows an active session"
+          "verifierLabel": "Alder Phantom shows an active session"
         },
         {
           "id": "verify-phone-location",
@@ -539,17 +539,17 @@
         },
         {
           "id": "start-route",
-          "body": "Click Start route · 45 mph. Ghost sends a new route point every second.",
+          "body": "Click Start route · 45 mph. Alder Phantom sends a new route point every second.",
           "kind": "permission",
           "point": {
             "descriptor": "Start route · 45 mph"
           },
           "title": "Start moving at 45 mph",
-          "verifierLabel": "Ghost shows Pause route and a moving blue dot"
+          "verifierLabel": "Alder Phantom shows Pause route and a moving blue dot"
         },
         {
           "id": "verify-route-on-phone",
-          "body": "Watch the phone’s map. Ghost’s dot shows sent points; it cannot verify what a phone app reads.",
+          "body": "Watch the phone’s map. Alder Phantom’s dot shows sent points; it cannot verify what a phone app reads.",
           "kind": "verify",
           "title": "Check movement on the phone",
           "verifierLabel": "You have checked movement in the phone’s map"
@@ -591,7 +591,7 @@
     }
   ],
   "outputType": "desktop_app",
-  "reviewNote": "Ghost 0.1.7: native installer and automated USB/Wi-Fi checks; physical Wi-Fi testing pending on both hosts. Mac/iPhone USB use reported; other physical combinations remain unverified. Phone settings and phone-map readings require manual confirmation; UI watches do not verify phone GPS.",
+  "reviewNote": "Alder Phantom 0.1.7: native installer and automated USB/Wi-Fi checks; physical Wi-Fi testing pending on both hosts. Mac/iPhone USB use reported; other physical combinations remain unverified. Phone settings and phone-map readings require manual confirmation; UI watches do not verify phone GPS.",
   "sourceRepo": "ghost-location",
   "sourceOwner": "Blueturboguy07",
   "sourceCommit": "dd77694624c22fd91bc89c41ff91ee32af756e47",

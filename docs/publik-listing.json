@@ -1,7 +1,7 @@
 {
   "listing": {
     "slug": "ghost",
-    "name": "Ghost",
+    "name": "Alder Phantom",
     "tagline": "Set a phone location or follow a route over USB or Wi-Fi",
     "category": "Productivity",
     "platform_badges": [
@@ -32,7 +32,7 @@
       "macos": true,
       "windows": true
     },
-    "appName": "Ghost",
+    "appName": "Alder Phantom",
     "routes": {
       "macos": {
         "kind": "signed_download",

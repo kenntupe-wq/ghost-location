@@ -34,7 +34,7 @@ One shared Electron interface handles the map, search, device selection, setup g
   phone appears, discard the old record automatically so the new phone can be used.
   Keep `active`, `applying`, `reconnecting`, and `stopping` sessions protected.
 - Selecting a pin changes the preview; an explicit Set location action changes the phone.
-- USB replug can automatically resume the same phone and applied target while the same Ghost process remains open. Same-phone manual retry is available after a connection failure; restarting Ghost requires manual Retry or Restore.
+- USB replug can automatically resume the same phone and applied target while the same Alder Phantom process remains open. Same-phone manual retry is available after a connection failure; restarting Alder Phantom requires manual Retry or Restore.
 - Restore cancels automatic reconnection, including when the phone is absent, and waits for any in-progress recovery before sending clear. A disconnected phone must reconnect for clearing to succeed.
 - Normal quit attempts restoration by default. The preference is configurable. Disconnect, crash, sleep, or unconfirmed cleanup leaves an unresolved session for recovery.
 - Replacing an unresolved record does not send Restore to the old phone. Its simulated location may persist until the old phone is restarted or restored separately.
