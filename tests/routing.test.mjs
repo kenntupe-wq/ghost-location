@@ -93,16 +93,25 @@ test('pause holds location and resume excludes paused time from speed', async t 
   await f.c.resumeRoute(); f.advance(1000); await f.c.tickRoute();
   close(f.c.state.route.traveledMeters, ROUTE_SPEED_MPS * 2);
 });
-test('disconnect and sleep pause progress; reconnect holds the last point until explicit resume', async t => {
+test('disconnect and sleep pause progress; reconnect resumes automatically without counting the outage', async t => {
   const f = await fixture(t); await f.start(); f.advance(1000); await f.c.tickRoute();
   await f.c.sessionEnded({deviceId: f.phone.id, error: 'Cable removed'});
   f.disconnect(); f.advance(30000); await f.c.scanDevices(); await f.c.tickRoute();
   assert.equal(f.c.state.route.status, 'paused'); close(f.c.state.route.traveledMeters, ROUTE_SPEED_MPS);
   f.reconnect(); await f.c.scanDevices();
-  assert.equal(f.c.state.session.status, 'active'); assert.equal(f.c.state.route.status, 'paused');
-  await f.c.resumeRoute(); f.advance(1000); await f.c.tickRoute(); close(f.c.state.route.traveledMeters, 2 * ROUTE_SPEED_MPS);
-  await f.c.suspend(); f.advance(30000); await f.c.resume();
+  assert.equal(f.c.state.session.status, 'active'); assert.equal(f.c.state.route.status, 'running');
+  f.advance(1000); await f.c.tickRoute(); close(f.c.state.route.traveledMeters, 2 * ROUTE_SPEED_MPS);
+  await f.c.suspend(); f.advance(30000);
   assert.equal(f.c.state.route.status, 'paused'); close(f.c.state.route.traveledMeters, 2 * ROUTE_SPEED_MPS);
+  await f.c.resume();
+  assert.equal(f.c.state.route.status, 'running'); close(f.c.state.route.traveledMeters, 2 * ROUTE_SPEED_MPS);
+});
+test('a manual pause is never auto-resumed by a reconnect', async t => {
+  const f = await fixture(t); await f.start(); f.advance(1000); await f.c.tickRoute();
+  await f.c.pauseRoute();
+  await f.c.sessionEnded({deviceId: f.phone.id, error: 'Cable removed'});
+  f.reconnect(); await f.c.scanDevices();
+  assert.equal(f.c.state.session.status, 'active'); assert.equal(f.c.state.route.status, 'paused');
 });
 test('failed initial route can resume through manual reconnect, without getting stuck', async t => {
   const f = await fixture(t); const set = f.adapter.set;
@@ -110,15 +119,20 @@ test('failed initial route can resume through manual reconnect, without getting 
   await assert.rejects(f.start()); assert.equal(f.c.state.route.status, 'paused');
   f.adapter.set = set; await f.c.resumeRoute(); assert.equal(f.c.state.route.status, 'running');
 });
-test('slow transport and long scheduling stalls pause instead of queueing or jumping', async t => {
+test('slow transport and long scheduling stalls keep playing and catch up to elapsed time', async t => {
+  t.mock.timers.enable({apis: ['setTimeout']});
   const f = await fixture(t); await f.start();
   let finish; f.adapter.update = () => new Promise(resolve => {finish = resolve;});
   f.advance(1000); const tick = f.c.tickRoute();
   await f.c.tickRoute(); // No concurrent write.
   f.advance(1500); finish({}); await tick;
-  assert.equal(f.c.state.route.status, 'paused'); close(f.c.state.route.traveledMeters, ROUTE_SPEED_MPS);
-  await f.c.resumeRoute(); f.advance(60000); await f.c.tickRoute();
-  assert.equal(f.c.state.route.status, 'paused'); close(f.c.state.route.traveledMeters, ROUTE_SPEED_MPS);
+  assert.equal(f.c.state.route.status, 'running'); close(f.c.state.route.traveledMeters, ROUTE_SPEED_MPS);
+  f.adapter.update = async (device, point) => { f.calls.push(['update', device.id, {...point}]); return {}; };
+  const updates = f.calls.filter(c => c[0] === 'update').length;
+  f.advance(5000); await f.c.tickRoute();
+  assert.equal(f.c.state.route.status, 'running');
+  assert.equal(f.calls.filter(c => c[0] === 'update').length, updates + 1, 'The missed beats are skipped, not queued');
+  close(f.c.state.route.traveledMeters, ROUTE_SPEED_MPS * 7.5);
 });
 test('Restore waits for an in-flight update, then clears without a late restart', async t => {
   const f = await fixture(t); await f.start(); let finish;
@@ -137,9 +151,16 @@ test('failed update or late acknowledgement cannot hide transport loss, and a ne
   assert.equal(f.c.state.route, null); assert.equal(f.c.state.session, null);
   assert.equal(f.calls.filter(c => c[0] === 'set').length, 1);
 });
-test('unplanned routes and changed endpoints cannot bypass route planning', async t => {
+test('unplanned routes are rejected; a new route replaces the current one on the same phone without Restore', async t => {
   const f = await fixture(t);
   await assert.rejects(f.c.startRoute({deviceId: f.phone.id, routeId: 'other'}), /Plan the route/);
-  await f.start(); await assert.rejects(f.c.planRoute(plan.waypoints), /restore real location/);
-  await assert.rejects(f.start(), /Restore real location/);
+  await f.start(); f.advance(1000); await f.c.tickRoute();
+  await f.c.planRoute(plan.waypoints);
+  assert.equal(f.c.state.route, null); assert.equal(f.c.state.session.status, 'active');
+  await f.start();
+  assert.equal(f.c.state.route.status, 'running'); assert.equal(f.c.state.route.traveledMeters, 0);
+  assert.equal(f.c.state.session.status, 'active'); assert.ok(!f.calls.some(c => c[0] === 'clear'));
+  f.replace(); await f.c.scanDevices();
+  await assert.rejects(f.c.startRoute({deviceId: 'ios:SECOND', routeId: plan.id}), /Restore the previous phone session/);
+  assert.equal(f.c.state.session.deviceId, f.phone.id);
 });

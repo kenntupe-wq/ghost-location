@@ -96,8 +96,10 @@ export class Controller extends EventEmitter {
         this.notify(); return this.snapshot();
       }
       active.status = this.canResume(active) ? 'waiting' : 'unknown';
-      this.pauseRouteMotion('Phone disconnected. Resume the route after this phone reconnects.');
+      const routeWasMoving = ['running', 'starting'].includes(this.state.route?.status);
+      this.pauseRouteMotion('Phone disconnected. The route will resume after this phone reconnects.');
       active.autoReconnect = this.canResume(active);
+      if (routeWasMoving) this.state.route.autoResume = active.autoReconnect;
       active.message = active.autoReconnect ? 'Phone disconnected. Waiting to reconnect this phone and resume the selected location.' : 'Phone disconnected. Connect this phone, then retry the location or restore it.';
       this.retryAt = 0;
       await this.persist();
@@ -319,6 +321,7 @@ export class Controller extends EventEmitter {
     const recovering = this.recoveryPromise;
     if (this.state.busy && !recovering) throw new Error('Wait for the current device operation to finish.');
     this.pauseRouteMotion();
+    if (this.state.route) this.state.route.autoResume = false;
     this.resumeSessionId = null;
     if (this.state.session) this.state.session.autoReconnect = false;
     if (recovering) await recovering.catch(() => {});
@@ -348,9 +351,11 @@ export class Controller extends EventEmitter {
   async sessionEnded({ deviceId, sessionId, error, retry = true }) {
     const current = this.state.session;
     if (current?.deviceId !== deviceId || (sessionId && sessionId !== current.id) || current.status === 'stopping') return;
-    this.pauseRouteMotion('Connection interrupted. Resume the route after this phone reconnects.');
+    const routeWasMoving = ['running', 'starting'].includes(this.state.route?.status);
+    this.pauseRouteMotion('Connection interrupted. The route will resume after this phone reconnects.');
     if (!retry) this.resumeSessionId = null;
     current.autoReconnect = this.canResume(current);
+    if (routeWasMoving) this.state.route.autoResume = current.autoReconnect;
     current.status = current.autoReconnect ? 'waiting' : 'unknown';
     current.message = error || 'The device connection ended.';
     if (current.autoReconnect) current.message += ' Ghost will reconnect this phone and resume the selected location.';
@@ -416,6 +421,7 @@ export class Controller extends EventEmitter {
         if (['unknown', 'waiting'].includes(current.status)) throw new Error(current.message);
         this.confirmActive(current, result);
         await this.persist();
+        this.resumeRouteAfterRecovery();
       } catch (error) {
         current.status = 'waiting'; current.message = `Reconnect failed: ${error.message} Ghost will retry while this phone is available.`;
         this.scheduleRetry(current);
@@ -432,17 +438,23 @@ export class Controller extends EventEmitter {
   async resume() { this.suspended = false; return this.scanDevices(); }
   getRoute() { return this.plannedRoute ? structuredClone(this.plannedRoute) : null; }
   async planRoute(waypoints) {
-    if (this.state.busy || (this.state.route && this.state.session)) throw new Error('Finish the current operation and restore real location before changing the route.');
+    if (this.state.busy) throw new Error('Finish the current operation before changing the route.');
     const route = await this.router.plan(waypoints);
-    if (this.state.busy || (this.state.route && this.state.session)) throw new Error('Finish the current operation and restore real location before changing the route.');
+    if (this.state.busy) throw new Error('Finish the current operation before changing the route.');
+    // End the current route (the session stays active and holds its last point) so
+    // a running tick never reads the new path with the old route's distance.
+    this.pauseRouteMotion();
+    if (this.routeUpdate) await this.routeUpdate.catch(() => {});
+    this.state.route = null;
     this.plannedRoute = route;
     this.routePath = measurePath(route.coordinates);
+    this.notify();
     return this.getRoute();
   }
   async startRoute({ deviceId, routeId } = {}) {
     const route = this.plannedRoute;
     if (!route || route.id !== routeId) throw new Error('Plan the route before starting.');
-    if (this.state.route && this.state.session) throw new Error('Restore real location before starting another route.');
+    // applyLocation still rejects a different phone while another phone's session is unresolved.
     await this.applyLocation({ deviceId, ...pointAlong(this.routePath, 0), label: `Route to ${route.waypoints.at(-1).label}` }, route);
     if (this.closing || this.suspended || this.state.session?.status !== 'active' || this.state.route?.status !== 'starting') return this.snapshot();
     this.state.route.status = 'running';
@@ -456,8 +468,18 @@ export class Controller extends EventEmitter {
       this.state.route.status = 'paused'; this.state.route.message = message;
     }
   }
+  resumeRouteAfterRecovery() {
+    const route = this.state.route, current = this.state.session;
+    if (!route?.autoResume || route.status !== 'paused' || this.closing || this.suspended ||
+      current?.status !== 'active' || current.deviceId !== route.deviceId) return;
+    route.autoResume = false; route.status = 'running';
+    route.message = 'Following the road at 45 mph. Sending a location every second.';
+    this.routeStepAt = this.clock(); this.scheduleRouteTick(); this.notify();
+  }
   async pauseRoute() {
-    this.pauseRouteMotion(); this.notify();
+    this.pauseRouteMotion();
+    if (this.state.route) this.state.route.autoResume = false;
+    this.notify();
     if (this.routeUpdate) await this.routeUpdate;
     await this.persist(); this.notify(); return this.snapshot();
   }
@@ -479,6 +501,7 @@ export class Controller extends EventEmitter {
           await this.sessionEnded({ deviceId: current.deviceId, sessionId: current.id, error: error.message }); throw error;
         }
       }
+      route.autoResume = false;
       route.status = 'running'; route.message = 'Following the road at 45 mph. Sending a location every second.';
       this.routeStepAt = this.clock(); this.scheduleRouteTick();
     });
@@ -500,7 +523,6 @@ export class Controller extends EventEmitter {
     }
     const started = this.clock(), elapsed = started - this.routeStepAt;
     if (elapsed < 1000) { this.scheduleRouteTick(1000 - elapsed); return; }
-    if (elapsed > 2000) { await this.pauseRoute(); this.state.route.message = 'Updates fell behind. Resume when the computer and phone connection are ready.'; this.notify(); return; }
     this.routeStepAt = started;
     const operation = async () => {
       try {
@@ -519,9 +541,6 @@ export class Controller extends EventEmitter {
         current.refreshIntervalMs = 1000; current.refreshSource = 'command-ack';
         if (distance >= route.distanceMeters) {
           route.status = 'completed'; route.message = 'Arrived. Your phone holds the destination until you restore real location.';
-          await this.persist();
-        } else if (this.clock() - started >= 1000) {
-          this.pauseRouteMotion('Location updates are taking longer than a second. Check the connection, then resume.');
           await this.persist();
         }
         this.notify();
